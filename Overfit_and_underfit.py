@@ -25,7 +25,7 @@ def get_callbacks(name):
     tf.keras.callbacks.TensorBoard(logdir/name),
   ]
 
-def compile_and_fit(model, name, lr_schedule, optimizer=None, max_epochs=10000):
+def compile_and_fit(model, name, lr_schedule, optimizer=None, max_epochs=1000):
   if optimizer is None:
     optimizer = get_optimizer(lr_schedule)
   model.compile(optimizer=optimizer,
@@ -42,7 +42,7 @@ def compile_and_fit(model, name, lr_schedule, optimizer=None, max_epochs=10000):
     steps_per_epoch=STEPS_PER_EPOCH,
     epochs=max_epochs,
     validation_data=validate_ds,
-    validation_steps=STEPS_PER_EPOCH,
+    validation_steps=100,
     callbacks=get_callbacks(name),
     verbose=0)
   return history
@@ -88,6 +88,21 @@ def LargeModel(lr_schedule):
     ])
     return compile_and_fit(large_model, "sizes/large", lr_schedule)
 
+def LargeL2Model(lr_schedule):
+    # 大型模型
+    large_model = tf.keras.Sequential([
+        layers.Dense(256, activation='relu', kernel_regularizer=regularizers.l2(0.001), input_shape=(FEATURES,)),
+        layers.Dropout(0.5),
+        layers.Dense(256, activation='relu', kernel_regularizer=regularizers.l2(0.001)),
+        layers.Dropout(0.5),
+        layers.Dense(256, activation='relu', kernel_regularizer=regularizers.l2(0.001)),
+        layers.Dropout(0.5),
+        layers.Dense(256, activation='relu', kernel_regularizer=regularizers.l2(0.001)),
+        layers.Dropout(0.5),
+        layers.Dense(1)
+    ])
+    return compile_and_fit(large_model, "regularizers/l2", lr_schedule)
+
 if __name__ == "__main__":
     logdir = pathlib.Path() / "tensorboard_logs"
     shutil.rmtree(logdir, ignore_errors=True)
@@ -127,9 +142,9 @@ if __name__ == "__main__":
     #train
     size_histories = {}
     size_histories['Tiny'] = TinyModel(lr_schedule)
-    size_histories['Small'] = SmallModel(lr_schedule)
-    size_histories['Medium'] = MediumModel(lr_schedule)
-    size_histories['large'] = LargeModel(lr_schedule)
+    #size_histories['Small'] = SmallModel(lr_schedule)
+    #size_histories['Medium'] = MediumModel(lr_schedule)
+    #size_histories['large'] = LargeModel(lr_schedule)
 
     #画出损失
     plotter = tfdocs.plots.HistoryPlotter(metric='binary_crossentropy', smoothing_std=10)
@@ -140,3 +155,14 @@ if __name__ == "__main__":
     plt.xlabel("Epochs [Log Scale]")
     plt.show()
 
+    #Strategies to prevent overfitting
+    shutil.rmtree(logdir / 'regularizers/Tiny', ignore_errors=True)
+    shutil.copytree(logdir / 'sizes/Tiny', logdir / 'regularizers/Tiny')
+
+    regularizer_histories = {}
+    regularizer_histories['Tiny'] = size_histories['Tiny']
+    regularizer_histories['l2'] = LargeL2Model(lr_schedule)
+
+    plotter.plot(regularizer_histories)
+    plt.ylim([0.5, 0.7])
+    plt.show()
