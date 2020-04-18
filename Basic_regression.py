@@ -89,8 +89,6 @@ if __name__ == "__main__":
     train_labels = train_dataset.pop('MPG')
     test_labels = test_dataset.pop('MPG')
 
-
-
     normed_train_data = norm(train_dataset)
     normed_test_data = norm(test_dataset)
 
