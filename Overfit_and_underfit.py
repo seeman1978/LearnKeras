@@ -42,7 +42,6 @@ def compile_and_fit(model, name, lr_schedule, optimizer=None, max_epochs=1000):
     steps_per_epoch=STEPS_PER_EPOCH,
     epochs=max_epochs,
     validation_data=validate_ds,
-    validation_steps=100,
     callbacks=get_callbacks(name),
     verbose=0)
   return history
@@ -122,7 +121,7 @@ if __name__ == "__main__":
     validate_ds = packed_ds.take(N_VALIDATION).cache()  #ensure that the loader doesn't need to re-read the data from the file on each epoch
     train_ds = packed_ds.skip(N_VALIDATION).take(N_TRAIN).cache()
 
-    validate_ds = validate_ds.repeat().batch(BATCH_SIZE)
+    validate_ds = validate_ds.batch(BATCH_SIZE)
     train_ds = train_ds.shuffle(BUFFER_SIZE).repeat().batch(BATCH_SIZE)
 
     #deep learning models tend to be good at fitting to the training data, but the real challenge is generalization, not fitting.
