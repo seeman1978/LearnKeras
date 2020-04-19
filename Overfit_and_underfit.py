@@ -112,9 +112,9 @@ if __name__ == "__main__":
 
     packed_ds = ds.batch(10000).map(pack_row).unbatch()
 
-    N_VALIDATION = int(1e3)
-    N_TRAIN = int(1e4)
-    BUFFER_SIZE = int(1e4)
+    N_VALIDATION = int(1e4)
+    N_TRAIN = int(1e5)
+    BUFFER_SIZE = int(1e5)
     BATCH_SIZE = 500
     STEPS_PER_EPOCH = N_TRAIN // BATCH_SIZE
 
